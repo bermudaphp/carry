@@ -1,13 +1,13 @@
 # Install
 ```bash
-composer require bermudaphp/carry
+composer require bermudaphp/curry
 ```
 
 # Usage
 ```php
-$add = new Carry(static fn(int $a, $int $b) => $a+$b, 10); 
+$add = new Curry(static fn(int $a, $int $b) => $a+$b, 10); 
 // alternative
-$add = carray(static fn(int $a, $int $b) => $a+$b, 10);
+$add = curry(static fn(int $a, $int $b) => $a+$b, 10);
 
 $add(5); // 15
 // alternative
@@ -18,9 +18,9 @@ $decrement = $add->add(-5);
 $decrement(); // 5
 
 // Allow default argument values
-$add = carray(static fn(int $a, $int $b = 5) => $a + $b, 10)->useDefaultValues(true);
+$add = curry(static fn(int $a, $int $b = 5) => $a + $b, 10)->useDefaultValues(true);
 // alternative
-$add = Carry::use(static fn(int $a, $int $b = 5) => $a + $b, 10)
+$add = Curry::use(static fn(int $a, $int $b = 5) => $a + $b, 10)
 
 $add() // 15
 ```
