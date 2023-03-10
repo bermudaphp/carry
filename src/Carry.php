@@ -2,21 +2,31 @@
 
 namespace Bermuda\Stdlib;
 
+use Bermuda\Reflection\TypeMatcher;
+
 final class Carry
 {
     private $callback;
-    private array $args;
+    private array $arguments = [];
+    private int $argumentsCount = 0;
     private bool $useDefaultValues = false;
+
+    private readonly TypeMatcher $typeMatcher;
 
     /**
      * @var ReflectionParameter[]
      */
-    private ?array $params = null;
+    private ?array $params;
 
-    public function __construct(callable $callback, ... $args)
+    /**
+     * @throws ReflectionException
+     */
+    public function __construct(callable $callback, ... $arguments)
     {
-        $this->args = $args;
         $this->callback = $callback;
+        $this->typeMatcher = new TypeMatcher();
+        $this->params = (new \ReflectionFunction($this->callback))->getParameters();
+        $this->addArguments($arguments);
     }
 
     /**
@@ -24,43 +34,42 @@ final class Carry
      * @return Carry|mixed
      * @throws ReflectionException
      */
-    public function __invoke(... $args): mixed
+    public function __invoke(... $arguments): mixed
     {
-        return $this->call(... $args);
+        return $this->call(... $arguments);
     }
 
     /**
-     * @param ...$args
-     * @return Carry|mixed
+     * @param ...$arguments
+     * @return mixed
      * @throws ReflectionException
      */
-    public function call(... $args): mixed
+    public function call(... $arguments): mixed
     {
-        if (!$this->params) $this->params = (new ReflectionFunction($this->callback))->getParameters();
-        if (($count = count(($copy = $this->add(... $args))->args)) >= count($copy->params)) {
-            return ($copy->callback)(...$copy->args);
+        if (($count = count(($copy = $this->add(... $arguments))->arguments)) >= count($copy->params)) {
+            return ($copy->callback)(...$copy->arguments);
         }
 
         if ($copy->useDefaultValues) {
             foreach (array_slice($copy->params, $count) as $parameter) {
                 if ($parameter->isDefaultValueAvailable()) {
-                    $copy->args[] = $parameter->getDefaultValue();
+                    $copy->arguments[] = $parameter->getDefaultValue();
                     $count++;
                 }
             }
         }
 
-        return $count >= count($copy->params) ? ($copy->callback)(... $copy->args) : $copy;
+        return $count >= count($copy->params) ? ($copy->callback)(... $copy->arguments) : $copy;
     }
 
     /**
-     * @param ... $args
-     * @return Carry
+     * @param ...$args
+     * @return self
      */
     public function add(... $args): self
     {
         $copy = clone $this;
-        foreach ($args as $arg) $copy->args[] = $arg;
+        $copy->addArguments($args);
 
         return $copy;
     }
@@ -79,5 +88,38 @@ final class Carry
         $self->useDefaultValues = true;
 
         return $self;
+    }
+
+    public function getCallback(): callable
+    {
+        return $this->callback;
+    }
+
+    /**
+     * @return array
+     */
+    public function getArguments(): array
+    {
+        return $this->arguments;
+    }
+
+    private function addArguments(array $arguments): void
+    {
+        if ($this->params === [] || count($this->params) === $this->argumentsCount) return;
+
+        foreach ($arguments as $argument) {
+            $type = ($param = $this->params[$this->argumentsCount])->getType();
+            if ($type !== null && !$this->typeMatcher->match($type, $argument)) {
+                throw new InvalidArgumentException(
+                    sprintf(
+                        "Argument #%s ($%s) must be of type %s. %s given.",
+                        $this->argumentsCount + 1, $param->getName(),
+                        (string) $type, is_object($argument) ? $argument::class : gettype($argument)
+                    )
+                );
+            }
+
+            $this->arguments[$this->argumentsCount++] = $argument;
+        }
     }
 }
