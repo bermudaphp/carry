@@ -2,7 +2,7 @@
 
 namespace Bermuda\Stdlib;
 
-function carry(callable $callback, ... $args): Carry
+function curry(callable $callback, ... $args): Carry
 {
-    return new Carry($callback, ... $args);
+    return new Curry($callback, ... $args);
 }
