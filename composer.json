@@ -4,9 +4,13 @@
   "autoload": {
     "psr-4": {
       "Bermuda\\Stdlib\\": "src/"
-    }
+    },
+    "files": [
+      "src/functions.php"
+    ]
   },
   "require": {
-    "php": "^8.1"
+    "php": "^8.1",
+    "bermudaphp/reflection-type-matcher": "^1.0"
   }
 }
