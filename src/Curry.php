@@ -110,7 +110,7 @@ final class Curry
         foreach ($arguments as $argument) {
             $type = ($param = $this->params[$this->argumentsCount])->getType();
             if ($type !== null && !$this->typeMatcher->match($type, $argument)) {
-                throw new InvalidArgumentException(
+                throw new \InvalidArgumentException(
                     sprintf(
                         "Argument #%s ($%s) must be of type %s. %s given.",
                         $this->argumentsCount + 1, $param->getName(),
