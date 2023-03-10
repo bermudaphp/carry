@@ -4,7 +4,7 @@ namespace Bermuda\Stdlib;
 
 use Bermuda\Reflection\TypeMatcher;
 
-final class Carry
+final class Curry
 {
     private $callback;
     private array $arguments = [];
@@ -31,7 +31,7 @@ final class Carry
 
     /**
      * @param ... $args
-     * @return Carry|mixed
+     * @return Curry|mixed
      * @throws ReflectionException
      */
     public function __invoke(... $arguments): mixed
